@@ -8,7 +8,7 @@ app_context.push()
 
 api = Api(app)
 
-API_PREFIX = 'api/v1'
+API_PREFIX = '/api/v1'
 
 api.add_resource(CallHandlingView, f'{API_PREFIX}/calls')
 api.add_resource(HealthStatusView, f'{API_PREFIX}/health')
