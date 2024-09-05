@@ -13,3 +13,11 @@ Grupo 11
 ## 1. Instalación
 
 ## 2. Ejecución
+
+## Correr servidor de Redis - Celery
+1. Levantar servidor de redis (local o imagen de docker)
+2. Correr el siguiente comando 
+
+```bash
+celery -A ms_call_handling.logs.logs worker -l info -Q health_logs
+```

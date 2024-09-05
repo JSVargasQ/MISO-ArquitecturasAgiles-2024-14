@@ -1,8 +1,17 @@
 from flask_restful import Resource
 from datetime import datetime
+from celery import Celery
 import uuid
 import random
 import psutil
+
+
+# Celery app
+celery_app = Celery(__name__, broker='redis://localhost:6379/0')
+
+@celery_app.task(name = 'health_check_log')
+def register_log(*args):
+    pass
 
 class CallHandlingView(Resource):
     def get(self):
@@ -12,7 +21,7 @@ class CallHandlingView(Resource):
 
 class HealthStatusView(Resource):
     def get(self):
-        
+                
         status_options = ['HEALTHY', 'UNHEALTHY', 'DEGRADED']
         
         # Get system information
@@ -78,6 +87,9 @@ class HealthStatusView(Resource):
                 # "activeConnections": active_connections
             },
         }
+        
+        args = response,
+        register_log.apply_async(args = args, queue='health_logs')
 
         return response, 200
     
