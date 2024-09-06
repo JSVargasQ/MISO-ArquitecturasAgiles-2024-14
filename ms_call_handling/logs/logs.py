@@ -1,6 +1,8 @@
 from celery import Celery
+import os
 
-celery_app = Celery(__name__, broker='redis://localhost:6379/0')
+REDIS_SERVER_URL=os.environ.get('REDIS_SERVER')
+celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
 
 @celery_app.task(name='health_check_log')
 def health_check_log(data):

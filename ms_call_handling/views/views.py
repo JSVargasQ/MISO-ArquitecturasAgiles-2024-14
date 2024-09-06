@@ -1,27 +1,74 @@
 from flask_restful import Resource
+from flask import request
 from datetime import datetime
 from celery import Celery
+from sqlalchemy.exc import IntegrityError
+from ..models import db, Call, CallSchema
+import os
 import uuid
 import random
 import psutil
 
-
+REDIS_SERVER_URL=os.environ.get('REDIS_SERVER')
 # Celery app
-celery_app = Celery(__name__, broker='redis://localhost:6379/0')
+celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
 
 @celery_app.task(name = 'health_check_log')
 def register_log(*args):
     pass
 
+call_schema = CallSchema()
+
 class CallHandlingView(Resource):
-    def get(self):
-        """
-        Get and Handling calls 
-        """
+    def post(self):
+        '''
+        Creates a new call 
+        '''
+        caller_id = request.json.get('caller_id', '').strip().lower()
+        duration = request.json.get('duration', 0)
+        call_status = request.json.get('call_status', '').strip().lower()
+        call_type = request.json.get('call_type', '').strip().lower()
+        call_priority = request.json.get('call_type', '').strip().lower()
+        
+        if not caller_id:
+            return {"message": "The field called_id is not present in the request"}, 400
+        if duration == 0:
+            return {"message": "The field duration is not present in the request"}, 400
+        if not call_status:
+            return {"message": "The field call_status is not present in the request"}, 400
+        if not call_type:
+            return {"message": "The field call_type is not present in the request"}, 400
+        if not call_priority:
+            return {"message": "The field call_priority is not present in the request"}, 400
+        
+        new_call = Call(caller_id=caller_id,
+                        duration=duration,
+                        call_status=call_status,
+                        call_type=call_type,
+                        call_priority=call_priority
+                        )
+        try:
+            
+            db.session.add(new_call)
+            db.session.commit()
+            return call_schema.dump(new_call), 200
+        
+        except IntegrityError:
+            db.session.rollback()
+            return {"mensaje": "El usuario ya existe o hubo un error en la creación"}, 400  
+            
+
+    def get(self, id):
+        '''
+        Returns one call b id
+        '''
+        return CallSchema.dump(Call.query.get_or_404(id))
 
 class HealthStatusView(Resource):
     def get(self):
-                
+        '''
+        Returns the status health of the services
+        '''     
         status_options = ['HEALTHY', 'UNHEALTHY', 'DEGRADED']
         
         # Get system information
