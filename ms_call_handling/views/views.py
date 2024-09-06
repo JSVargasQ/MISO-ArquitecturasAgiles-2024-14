@@ -17,6 +17,10 @@ celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
 def register_log(*args):
     pass
 
+@celery_app.task(name = 'monitor_logs')
+def monitor_log(*args):
+    pass
+
 call_schema = CallSchema()
 
 class CallHandlingView(Resource):
@@ -123,7 +127,7 @@ class HealthStatusView(Resource):
             "type": "HEALTH_CHECK_RESPONSE",
             "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "requestId": f"hc-{uuid.uuid4().hex[:6]}",
-            "serviceName": "call-handling",
+            "serviceName": "calls/health",
             "status": service_status,
             "version": "0.1.15",
             "checkResults": check_results,  # Resultados de múltiples APIs
@@ -137,6 +141,7 @@ class HealthStatusView(Resource):
         
         args = response,
         register_log.apply_async(args = args, queue='health_logs')
+        monitor_log.apply_async(args = args, queue='monitor_logs')
 
         return response, 200
     
