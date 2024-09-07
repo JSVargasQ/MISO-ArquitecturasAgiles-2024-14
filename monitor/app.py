@@ -5,6 +5,8 @@ from datetime import datetime
 from .models import db, Monitoreo
 from monitor import create_app
 from threading import Thread
+from flask_cors import CORS
+from flask import request
 import logging
 import json
 
@@ -29,28 +31,33 @@ def health_check(health_check_request):
 
 class VistaMonitor(Resource):
 
-    def post(self, health_check_response):
-        health_check_response_data = health_check_response.json()
+    def post(self):
+        health_check_response_data = request.json
         monitoreo = Monitoreo.query.filter_by(id=health_check_response_data['requestId']).first()
-        if health_check_response_data['serviceName'] == 'calls':
-            monitoreo.call_micro_response = health_check_response_data
-            monitoreo.call_micro_response_time = health_check_response_data['timestamp']
+        
+        # Calls Handling HECTOR
+        if health_check_response_data['serviceName'] == 'calls/health':
+            monitoreo.call_micro_response = json.dumps(health_check_response_data)
+            monitoreo.call_micro_response_time = datetime.now()
             monitoreo.call_micro_response_status = health_check_response_data['status']
-        elif health_check_response_data['serviceName'] == 'users':
-            monitoreo.user_micro_response = health_check_response_data
-            monitoreo.user_micro_response_time = health_check_response_data['timestamp']
+       
+        # UserManagement PUBLIO
+        elif health_check_response_data['serviceName'] == 'users/health':
+            monitoreo.user_micro_response = json.dumps(health_check_response_data)
+            monitoreo.user_micro_response_time = datetime.now()
             monitoreo.user_micro_response_status = health_check_response_data['status']
         db.session.add(monitoreo)
         db.session.commit()
 
         return {"message": "Health check response received"}, 200
     
+cors = CORS(app)
 api = Api(app)
 api.add_resource(VistaMonitor, '/monitor')
 
 def monitoring():
     global counter
-    if counter < 3: # Contador de ejecuciones
+    if counter < 100: # Contador de ejecuciones
         counter += 1
         logging.info(f"Iteración {counter}")
     else:
@@ -90,7 +97,7 @@ def monitoring():
 sched = BackgroundScheduler()
 
 # Programar la función para que se ejecute cada 20 segundos
-sched.add_job(monitoring, 'interval', seconds=20)
+sched.add_job(monitoring, 'interval', seconds = 2)
 
 # Iniciar el scheduler
 sched.start()

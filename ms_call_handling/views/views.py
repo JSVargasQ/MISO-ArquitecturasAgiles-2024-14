@@ -69,10 +69,10 @@ class CallHandlingView(Resource):
         return CallSchema.dump(Call.query.get_or_404(id))
 
 class HealthStatusView(Resource):
-    def get(self):
+    def get(self, id_request):
         '''
         Returns the status health of the services
-        '''     
+        '''         
         status_options = ['HEALTHY', 'UNHEALTHY', 'DEGRADED']
         
         # Get system information
@@ -126,7 +126,7 @@ class HealthStatusView(Resource):
         response = {
             "type": "HEALTH_CHECK_RESPONSE",
             "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "requestId": f"hc-{uuid.uuid4().hex[:6]}",
+            "requestId": id_request,
             "serviceName": "calls/health",
             "status": service_status,
             "version": "0.1.15",
@@ -134,13 +134,12 @@ class HealthStatusView(Resource):
             "message": message,
             "metrics": {
                 "cpu": cpu_usage,
-                "memory": memory_usage,
-                # "activeConnections": active_connections
+                "memory": memory_usage
             },
         }
         
         args = response,
-        register_log.apply_async(args = args, queue='health_logs')
+        register_log.apply_async(args = args, queue='health_response')
         monitor_log.apply_async(args = args, queue='monitor_logs')
 
         return response, 200
