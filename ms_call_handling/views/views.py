@@ -14,7 +14,7 @@ REDIS_SERVER_URL=os.environ.get('REDIS_SERVER')
 celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
 
 @celery_app.task(name = 'health_check_log')
-def register_log(*args):
+def health_response(*args):
     pass
 
 @celery_app.task(name = 'monitor_logs')
@@ -139,7 +139,11 @@ class HealthStatusView(Resource):
         }
         
         args = response,
-        register_log.apply_async(args = args, queue='health_response')
+        
+        # Cola de respuesta al componente Monitor
+        health_response.apply_async(args = args, queue='health_response')
+        
+        # Cola interna de logs del microservicio
         monitor_log.apply_async(args = args, queue='monitor_logs')
 
         return response, 200

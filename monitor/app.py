@@ -9,11 +9,14 @@ from flask_cors import CORS
 from flask import request
 import logging
 import json
+import os
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 
-celery = Celery(__name__, broker='redis://localhost:6379/0')
+# Celery app
+REDIS_SERVER_URL=os.environ.get('REDIS_SERVER')
+celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
 
 app = create_app('Monitor')
 app_context = app.app_context()
@@ -24,7 +27,7 @@ db.create_all()
 
 counter = 0
 
-@celery.task(name='health_check')
+@celery_app.task(name='health_check')
 def health_check(health_check_request):
     # task in queue.py
     pass
@@ -97,7 +100,7 @@ def monitoring():
 sched = BackgroundScheduler()
 
 # Programar la función para que se ejecute cada 20 segundos
-sched.add_job(monitoring, 'interval', seconds = 2)
+sched.add_job(monitoring, 'interval', seconds = 5)
 
 # Iniciar el scheduler
 sched.start()

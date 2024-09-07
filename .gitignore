@@ -150,4 +150,3 @@ cython_debug/
 tabcall.db
 /venv
 **/__pycache__
-.env
