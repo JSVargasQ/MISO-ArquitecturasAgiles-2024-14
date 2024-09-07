@@ -1,10 +1,15 @@
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from celery import Celery
 from flask_restful import Api, Resource
 from datetime import datetime
 from .models import db, Monitoreo
 from monitor import create_app
+from threading import Thread
+import logging
 import json
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
 
 celery = Celery(__name__, broker='redis://localhost:6379/0')
 
@@ -47,7 +52,7 @@ def monitoring():
     global counter
     if counter < 3: # Contador de ejecuciones
         counter += 1
-        print(f"Iteración {counter}")
+        logging.info(f"Iteración {counter}")
     else:
         sched.shutdown()  # Detiene el scheduler después de las ejecuciones
 
@@ -78,15 +83,25 @@ def monitoring():
         db.session.commit()
 
         # Enviar request
-        # health_check.apply_async(args=[health_check_request_str])
-    
-    
+        health_check.apply_async(args=[health_check_request_str], queue='health_check')
+
 
 # Crear el scheduler
-sched = BlockingScheduler()
+sched = BackgroundScheduler()
 
 # Programar la función para que se ejecute cada 20 segundos
 sched.add_job(monitoring, 'interval', seconds=20)
 
 # Iniciar el scheduler
 sched.start()
+
+# Función para iniciar el servidor Flask
+def start_server():
+    logging.info("Iniciando el servidor Flask")
+    app.run(debug=True)
+    logging.info("Servidor iniciado")
+
+if __name__ == "__main__":
+    # Iniciar el servidor Flask en un hilo separado
+    server_thread = Thread(target=start_server)
+    server_thread.start()
