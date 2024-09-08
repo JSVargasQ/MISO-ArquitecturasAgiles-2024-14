@@ -17,7 +17,7 @@ celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
 def health_response(*args):
     pass
 
-@celery_app.task(name = 'monitor_logs')
+@celery_app.task(name = 'monitor_calls_logs')
 def monitor_log(*args):
     pass
 
@@ -144,7 +144,7 @@ class HealthStatusView(Resource):
         health_response.apply_async(args = args, queue='health_response')
         
         # Cola interna de logs del microservicio
-        monitor_log.apply_async(args = args, queue='monitor_logs')
+        monitor_log.apply_async(args = args, queue='monitor_calls_logs')
 
         return response, 200
     

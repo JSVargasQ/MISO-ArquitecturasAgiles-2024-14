@@ -46,22 +46,28 @@ Levantar servidor de redis (local o imagen de docker)
 
 Ejecutar cada cola en una instancia distinta de la términal o CMD dentro de la carpeta raíz del proyecto.
 
-1. Cola de health logs
+1. Cola del monitor que va hacia los Microservicios
+
+```bash
+celery -A monitor.tasks.queue worker -l info -Q health_check
+```
+
+2. Cola de Health Response que responde desde los Microservicios hacia el Monitor
 
 ```bash
 celery -A ms_call_handling.tasks.queue worker -l info -Q health_response
 ```
 
-2. Cola del monitor
+3. Cola del logger del Microservicio de Call Handling cuando se realiza la petición
 
 ```bash
-celery -A ms_call_handling.tasks.queue worker -l info -Q monitor_logs
+celery -A ms_call_handling.tasks.queue worker -l info -Q monitor_calls_logs
 ```
 
-2. Cola del monitor
+4. Cola del logger del Microservicio de User Management cuando se realiza la petición
 
 ```bash
-celery -A monitor.tasks.queue worker -l info -Q health_check
+celery -A ms_user_management.tasks.queue worker -l info -Q monitor_users_logs
 ```
 
 ## 6. Levantar los Microservicios
