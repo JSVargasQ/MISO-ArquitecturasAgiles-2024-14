@@ -26,6 +26,7 @@ db.init_app(app)
 db.create_all()
 
 counter = 0
+interval = 3
 
 @celery_app.task(name='health_check')
 def health_check(health_check_request):
@@ -100,7 +101,7 @@ def monitoring():
 sched = BackgroundScheduler()
 
 # Programar la función para que se ejecute cada 20 segundos
-sched.add_job(monitoring, 'interval', seconds = 5)
+sched.add_job(monitoring, 'interval', seconds = interval)
 
 # Iniciar el scheduler
 sched.start()
