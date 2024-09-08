@@ -1,7 +1,7 @@
 # Proyecto MISW-4202 2024-14
 
 Experimiento de Disponibilidad de Software - Sprint 1
-Arwquitectura de estilo Microservicios con comunicación asincrónica
+Arquitectura de estilo Microservicios con comunicación asincrónica
 
 # Integrantes Grupo 11
 
