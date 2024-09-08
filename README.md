@@ -29,7 +29,7 @@ python3 -m venv venv
 Comando para ejecutar el Ambiente Virtual creado
 
 ```bash
-soruce venv/bin/activate
+source venv/bin/activate
 ```
 
 ## 3. Instalación
