@@ -46,6 +46,8 @@ Levantar servidor de redis (local o imagen de docker)
 
 Ejecutar cada cola en una instancia distinta de la términal o CMD dentro de la carpeta raíz del proyecto.
 
+NOTA: Preferiblemente ejecutar estos comandos desde la terminal integrada de Visual Studio Code y dentro de un sistema Linux o UNIX 
+
 1. Cola del monitor que va hacia los Microservicios
 
 ```bash
