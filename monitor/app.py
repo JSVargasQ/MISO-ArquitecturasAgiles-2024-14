@@ -15,7 +15,8 @@ import os
 logging.basicConfig(level=logging.INFO)
 
 # Celery app
-REDIS_SERVER_URL=os.environ.get('REDIS_SERVER')
+# REDIS_SERVER_URL=os.environ.get('REDIS_SERVER')
+REDIS_SERVER_URL='redis://localhost:6379/0'
 celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
 
 app = create_app('Monitor')

@@ -69,6 +69,10 @@ celery -A ms_call_handling.tasks.queue worker -l info -Q monitor_calls_logs
 ```bash
 celery -A ms_user_management.tasks.queue worker -l info -Q monitor_users_logs
 ```
+Imagen de referencia de la ejecución de las colas de Celery con REDIS en distintas instancias de la terminal de VS Code 
+
+![Screenshot 2024-09-08 at 9 30 35 PM](https://github.com/user-attachments/assets/83259a05-e2e2-41a2-8fa5-c15b3a37c294)
+
 
 ## 6. Levantar los Microservicios
 
@@ -90,7 +94,13 @@ Servicio de Call Handling
 cd monitor
 flask run -p 5000
 ```
+Imagen de referencia de la ejecución de los servicios en distintas instancias de la terminal de VS Code 
+
+![Screenshot 2024-09-08 at 9 32 45 PM](https://github.com/user-attachments/assets/6322a3c6-1a8a-44bf-8722-5f2f27c62570)
 
 ## 8. Comprobar resultados
 
-Una vez se haya levantado 
+Puede comprobar el resultado del experimento en los siguientes enlaces
+
+1. [Analísis cuantitativo en Looker Studio](https://lookerstudio.google.com/u/0/reporting/78fcc402-1401-4ac0-8a6c-0cd8a7d85644/page/Gg3)
+2. [Presentación del experimento](https://docs.google.com/presentation/d/15z_ZGMFctxYSBiOPJ_o3gk4V7D6VAych/edit?usp=sharing&ouid=104474903328127988920&rtpof=true&sd=true)

@@ -9,7 +9,8 @@ import uuid
 import random
 import psutil
 
-REDIS_SERVER_URL=os.environ.get('REDIS_SERVER')
+# REDIS_SERVER_URL=os.environ.get('REDIS_SERVER')
+REDIS_SERVER_URL='redis://localhost:6379/0'
 # Celery app
 celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
 
