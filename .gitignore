@@ -117,6 +117,7 @@ venv.bak/
 
 #Base de datos
 instance/
+instance/call_handling.db
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -149,3 +150,7 @@ cython_debug/
 tabcall.db
 /venv
 **/__pycache__
+
+# LOGS
+ms_call_handling/tasks/monitor_logs.txt
+ms_user_management/tasks/monitor_logs.txt

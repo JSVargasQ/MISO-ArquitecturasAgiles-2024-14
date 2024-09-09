@@ -100,6 +100,20 @@ Imagen de referencia de la ejecución de los servicios en distintas instancias d
 
 ![Screenshot 2024-09-08 at 9 32 45 PM](https://github.com/user-attachments/assets/6322a3c6-1a8a-44bf-8722-5f2f27c62570)
 
+
+## 8. Ver la ejecución del experimento
+
+Puede ir a ver los archivos de los resultados del experimento en estos archivos
+
+1. ms_call_handling/tasks/monitor_logs.txt
+2. ms_user_management/tasks/monitor_logs.txt
+3. instance/monitoring.db
+
+Los dos primeros archivos txt corresponden a un log interno dentro de cada Microservicio que se va llenando con base a la petición que se le realiza al endpoint de health de cada Microservicio.
+
+El tercer archivo es la base de datos del componente monitor, en el que se ve las repuestas de los microservicios cuando se ejecutan las peticiones a estos.
+
+
 ## 8. Comprobar resultados
 
 Puede comprobar el resultado del experimento en los siguientes enlaces
