@@ -1,7 +1,7 @@
 from ms_user_management import create_app
 from flask_restful import Api
 from flask_cors import CORS
-from .views import UserManagementView
+from .views import UserManagementView, PQRSManagementView
 from .models import db
 
 app = create_app('User Handling Microservice')
@@ -17,3 +17,4 @@ api = Api(app)
 API_PREFIX = '/api/v1'
 
 api.add_resource(UserManagementView, f'{API_PREFIX}/users')
+api.add_resource(PQRSManagementView, f'{API_PREFIX}/pqrs')
