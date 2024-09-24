@@ -1,19 +1,19 @@
 from flask_sqlalchemy import SQLAlchemy
-from marshmallow import fields, Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from sqlalchemy import func
 
 db = SQLAlchemy()
 
 class User (db.Model):
     __tablename__ = 'User'
     id = db.Column(db.Integer, primary_key=True)
-    event_id = db.Column(db.String(15), nullable=False)
-    duration = db.Column(db.Float, nullable=False)
-    event_status = db.Column(db.String(50), nullable=False)  # e.g., "completed", "abandoned"
-    event_type = db.Column(db.String(50), nullable=False)  # e.g., "inbound", "outbound"
-    evnt_priority = db.Column(db.String(20), nullable=True)  # e.g., "low", "medium", "high"
-   
+    name = db.Column(db.String(100), nullable=False)
+    lastname = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False, unique=True)
+    country = db.Column(db.String(50), nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    plan = db.Column(db.String(50), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    updated_at = db.Column(db.DateTime, nullable=False, default=db.func.now(), onupdate=db.func.now())
 
 class UserSchema(SQLAlchemyAutoSchema):
     class Meta:
