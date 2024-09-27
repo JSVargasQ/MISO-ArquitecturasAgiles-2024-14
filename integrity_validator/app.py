@@ -1,10 +1,20 @@
 from datetime import datetime
 import hashlib
-from flask import jsonify, request
+import hmac
+from celery import Celery
+from flask import request
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from integrity_validator import create_app
 from .models import db
+
+REDIS_SERVER_URL='redis://localhost:6379/0'
+celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
+
+@celery_app.task(name='send_alert')
+def send_alert_simulation(*args):
+    # task in tasks/queue.py
+    pass
 
 app = create_app('Ingegrity Validator')
 app_context = app.app_context()
@@ -17,7 +27,11 @@ cors = CORS(app)
 api = Api(app)
 
 def calculate_hash(data):
-    return hashlib.sha256(data.encode()).hexdigest()
+    # Crear un objeto HMAC con la clave secreta y el mensaje
+    secret_key = "clave_secreta"
+    hmac_obj = hmac.new(secret_key.encode(), data.encode(), hashlib.sha256)
+    # Generar el hash
+    return hmac_obj.hexdigest()
 
 class VistaValidador(Resource):
     
@@ -26,7 +40,7 @@ class VistaValidador(Resource):
         received_hash = request.headers.get('X-Content-Hash')
         
         if not received_hash:
-            return jsonify({"error": "Falta el encabezado X-Content-Hash"}), 400
+            return {"error": "Falta el encabezado X-Content-Hash"}, 400
         
         # Calcular el hash del cuerpo de la petición
         body = request.get_data(as_text=True)
@@ -34,12 +48,14 @@ class VistaValidador(Resource):
         
         # Comparar los hashes
         if received_hash == calculated_hash:
-            return jsonify({"status": "valid", "message": "La integridad del mensaje es válida"}), 200
+            return {"status": "valid", "message": "La integridad del mensaje es válida"}, 200
         else:
             alerta = Warning(timestamp=datetime.now(), message=body, hash_expected=calculated_hash, hash_received=received_hash)
             db.session.add(alerta)
             db.session.commit()
-            # TODO: Simular envío de notificación por una cola
-            return jsonify({"status": "invalid", "message": "La integridad del mensaje no es válida"}), 400
+            # Simular envío de alerta
+            send_alert_simulation.apply_async(args = f'La solicitud enviada el {alerta.timestamp} parece estar comprometida, por favor revise el registro {alerta.id} de la tabla warnings.', queue='send_alert')
+
+            return {"status": "invalid", "message": "La integridad del mensaje no es válida"}, 400
 
 api.add_resource(VistaValidador, '/validator')
