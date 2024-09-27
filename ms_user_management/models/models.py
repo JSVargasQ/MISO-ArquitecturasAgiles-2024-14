@@ -9,6 +9,7 @@ class User (db.Model):
     name = db.Column(db.String(100), nullable=False)
     lastname = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False, unique=True)
+    phone = db.Column(db.String(20), nullable=False)
     country = db.Column(db.String(50), nullable=False)
     city = db.Column(db.String(100), nullable=False)
     plan = db.Column(db.String(50), nullable=False)
