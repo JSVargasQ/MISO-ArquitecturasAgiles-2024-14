@@ -1,152 +1,137 @@
+import hashlib
+import hmac
+import requests
+import json
+import random
+
 from flask_restful import Resource
 from flask import request
-from ms_user_management.models.models import User, UserSchema,db
-from datetime import datetime
-from celery import Celery
+from faker import Faker
 from sqlalchemy.exc import IntegrityError
 from ..models import db, User, UserSchema
-import os
-import uuid
-import random
-import psutil
-
-
-# REDIS_SERVER_URL=os.environ.get('REDIS_SERVER')
-REDIS_SERVER_URL='redis://localhost:6379/0'
-# Celery app
-celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
-
-@celery_app.task(name = 'health_check_log')
-def register_log(*args):
-    pass
-
-@celery_app.task(name = 'monitor_users_logs')
-def monitor_log(*args):
-    pass
+from datetime import datetime
 
 usuario_schema = UserSchema()
+faker = Faker()
+
 
 class UserManagementView(Resource):
     def post(self):
-        """
-        Post user event  
+        name_user = request.json.get('name', '').strip()
+        lastname_user = request.json.get('lastname', '').strip()
+        email_user = request.json.get('email', '').strip().lower()
+        country_user = request.json.get('country', '').strip().lower()
+        city_user = request.json.get('city', '').strip().lower()
+        plan_user = request.json.get('plan', '').strip()
 
-        """
-        event_id = request.json.get('event_id', '').strip().lower()
-        duration = request.json.get('duration', 0)
-        event_status = request.json.get('event_status', '').strip().lower()
-        event_type = request.json.get('event_type', '').strip().lower()
-        event_priority = request.json.get('event_type', '').strip().lower()
-
-        if not event_id:
-            return {"message": "The field event_id is not present in the request"}, 400
-        if duration == 0:
-            return {"message": "The field duration is not present in the request"}, 400
-        if not event_status:
-            return {"message": "The field event_status is not present in the request"}, 400
-        if not event_type:
-            return {"message": "The field event_type is not present in the request"}, 400
-        if not event_priority:
-            return {"message": "The field event_priority is not present in the request"}, 400
-        
-        new_user = User(event_id=event_id,
-                        duration=duration,
-                        event_status=event_status,
-                        event_type=event_type,
-                        event_priority=event_priority
+        new_user = User(name=name_user,
+                        lastname=lastname_user,
+                        email=email_user,
+                        country=country_user,
+                        city=city_user,
+                        plan=plan_user
                         )
 
         try:
-            
+
             db.session.add(new_user)
             db.session.commit()
-            return UserSchema.dump(new_user), 200
-        
+            return usuario_schema.dump(new_user), 200
+
         except IntegrityError:
             db.session.rollback()
-            return {"mensaje": "El usuario ya existe o hubo un error en la creación"}, 400  
-            
+            return {"mensaje": "El usuario ya existe o hubo un error en la creación"}, 400
 
-    def get(self, id):
-        '''
-        Returns one user by id
-        '''
-        return UserSchema.dump(User.query.get_or_404(id))
-    
-    
-class HealthStatusView(Resource):
-    def get(self, id_request):
-        """
-        Returns the health status of the service 
-        """
-        status_options = ['HEALTHY', 'UNHEALTHY', 'DEGRADED']
-        
-        # Get system information
-        cpu_usage = psutil.cpu_percent(interval = 1) / 100
-        memory_usage = psutil.virtual_memory().percent / 100
-        # active_connections = len(psutil.net_connections())
-        
-        response_time = random.randint(30, 3000)
-        service_status = random.choice(status_options)
-        
 
-        # Simular el monitoreo de múltiples APIs
-        apis = [
-            {"endpoint": "/api/v1/users", "statusCode": random.choice([200, 500, 503])},
-            {"endpoint": "/api/v1/routing", "statusCode": random.choice([200, 500, 503])},
-            {"endpoint": "/api/v1/forwarding", "statusCode": random.choice([200, 500, 503])},
-            {"endpoint": "/api/v1/notifications", "statusCode": random.choice([200, 500, 503])}
-        ]
-        
-        # Crear los resultados de monitoreo de las APIs
-        check_results = []
-        error_count = 0 # Contar APIs con error
-        for api in apis:
-            # Simular respuesta
-            api_status = "OK" if api["statusCode"] == 200 else "ERROR"
-            # Simular tiempo de respuesta
-            response_time = random.randint(30, 100) if api_status == "OK" else random.randint(500, 1500)
-            check_results.append({
-                "endpoint": api["endpoint"],
-                "status": api_status,
-                "responseTime": response_time,  
-                "statusCode": api["statusCode"]
-            })
-            
-            if api["statusCode"] != 200:
-                error_count += 1
+class UserManagementView(Resource):
+    def post(self):
+        name_user = request.json.get('name', '').strip()
+        lastname_user = request.json.get('lastname', '').strip()
+        email_user = request.json.get('email', '').strip().lower()
+        phone_user = request.json.get('phone', '').strip().lower()
+        country_user = request.json.get('country', '').strip().lower()
+        city_user = request.json.get('city', '').strip().lower()
+        plan_user = request.json.get('plan', '').strip()
 
-        # Determinar el estado general del servicio según la cantidad de errores
-        if error_count == 0:
-            service_status = "HEALTHY"
-            message = "All systems operational"
-        elif error_count == 1:
-            service_status = "DEGRADED"
-            message = "Systems operational with minor issues"
+        new_user = User(
+            name=name_user,
+            lastname=lastname_user,
+            email=email_user,
+            phone=phone_user,
+            country=country_user,
+            city=city_user,
+            plan=plan_user
+        )
+
+        try:
+
+            db.session.add(new_user)
+            db.session.commit()
+            return usuario_schema.dump(new_user), 200
+
+        except IntegrityError:
+            db.session.rollback()
+            return {"mensaje": "El usuario ya existe o hubo un error en la creación"}, 400
+
+
+class PQRSManagementView(Resource):
+    def post(self):
+        pqrs_service_url = 'http://127.0.0.1:5001/api/v1/'
+        experimental_service_url = 'http://127.0.0.1:5002/api/v1/'
+
+        created_at = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        email_user = request.json.get('user', '').strip()
+        user = User.query.filter_by(email=email_user).first()
+
+        if user:
+            detail_pqrs = request.json.get('detail', '').strip()
+            body_request_pqrs = {
+                "contact_info": {
+                    "user": email_user,
+                    "phone": user.phone
+                },
+                "detail": detail_pqrs,
+                "priority": faker.random_element(elements=["Baja", "Media", "Alta"]),
+                "category": faker.random_element(elements=["Servicio al Cliente", "Soporte Técnico", "Facturación"]),
+                "status": "En Proceso",
+                "submitted_at": created_at,
+                "type": request.json.get('type_pqrs', '').strip(),
+                "user_id": user.id,
+                "attachments": [
+                    {
+                        "filename": faker.file_name(extension='img'),
+                        "file_url": faker.url()
+                    },
+                    {
+                        "filename": faker.file_name(extension='pdf'),
+                        "file_url": faker.url()
+                    }
+                ],
+            }
+            hashBody = self.createHash(body_request_pqrs)
+            headers = {
+                'X-Content-Hash': hashBody,
+            }
+
+            try:
+                if random.random() < 0.25:
+                    response = requests.post(experimental_service_url, headers=headers, json=body_request_pqrs)
+                else:
+                    response = requests.post(pqrs_service_url, headers=headers, json=body_request_pqrs)
+                code_status = 200
+            except:
+                print("error request")
+                response = "error in request"
+                code_status = 500
+
+            return response, code_status
         else:
-            service_status = "UNHEALTHY"
-            message = "Critical issues detected"
-               
-        
-        # Crear respuesta
-        response = {
-            "type": "HEALTH_CHECK_RESPONSE",
-            "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "requestId": id_request,
-            "serviceName": "users/health",
-            "status": service_status,
-            "version": "0.1.15",
-            "checkResults": check_results,  # Resultados de múltiples APIs
-            "message": message,
-            "metrics": {
-                "cpu": cpu_usage,
-                "memory": memory_usage
-            },
-        }
-        
-        args = response,
-        register_log.apply_async(args = args, queue='health_response')
-        monitor_log.apply_async(args = args, queue='monitor_users_logs')
+            return {"mensaje": "Usuario no encontrado"}, 404
 
-        return response, 200
-        
+    def createHash(self, body):
+        # Crear un objeto HMAC con la clave secreta y el mensaje
+        secret_key = "clave_secreta"
+        body = json.dumps(body)
+        hmac_obj = hmac.new(secret_key.encode(), body.encode(), hashlib.sha256)
+        # Generar el hash
+        return hmac_obj.hexdigest()

@@ -7,7 +7,7 @@ import json
 app = Flask(__name__)
 faker = Faker()
 
-
+integrity_service_url = 'http://127.0.0.1:5000/validator'
 # URL del endpoint Flask (asume que está corriendo en localhost)
 url = 'http://127.0.0.1:5000/pqr'
 
@@ -85,3 +85,35 @@ def get_hash_pqr():
         "hash": json_hash
     }
     return jsonify(response), 20
+
+
+@app.post('/api/v1/pqrs')
+def check_integrity():
+    
+    
+    received_hash = request.headers.get('X-Content-Hash')
+
+    print("received_hash*************",received_hash)
+
+    if not received_hash:
+            return {"error": "Falta el encabezado X-Content-Hash"}, 400
+
+
+    body = request.get_data(as_text=True)
+    
+    print("body*************",body)
+
+    headers = {
+                'X-Content-Hash': received_hash,
+            }
+
+    response1 = requests.post(integrity_service_url, headers=headers, json=body)
+    
+    print("-----------------------")
+    print(response1)
+
+    response = {
+        "data": "procesado"
+        
+    }
+    return  jsonify(response), 200
