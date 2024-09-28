@@ -104,3 +104,8 @@ Puede comprobar el resultado del experimento en los siguientes enlaces
 
 1. [Analísis cuantitativo en Looker Studio](https://lookerstudio.google.com/u/0/reporting/78fcc402-1401-4ac0-8a6c-0cd8a7d85644/page/Gg3)
 2. [Presentación del experimento](https://docs.google.com/presentation/d/15z_ZGMFctxYSBiOPJ_o3gk4V7D6VAych/edit?usp=sharing&ouid=104474903328127988920&rtpof=true&sd=true)
+
+## 9. Ejecutar el Man in the Middle 
+```bash
+mitmproxy --mode reverse:http://127.0.0.1:5002/ -s MITM/app.py
+```
