@@ -125,4 +125,4 @@ Puede ir a ver los archivos de los resultados del experimento en estos archivos
 
 Puede comprobar el resultado del experimento en el siguiente enlace
 
-1. [Presentación del experimento](https://docs.google.com/presentation/d/15z_ZGMFctxYSBiOPJ_o3gk4V7D6VAych/edit?usp=sharing&ouid=104474903328127988920&rtpof=true&sd=true)
+1. [Presentación del experimento](https://docs.google.com/presentation/d/1OXmXPsKrinOluq2WC6b2i9dH7cQS_o-S/edit?usp=sharing&ouid=104474903328127988920&rtpof=true&sd=true)
