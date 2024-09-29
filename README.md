@@ -48,80 +48,77 @@ Ejecutar cada cola en una instancia distinta de la términal o CMD dentro de la 
 
 NOTA: Preferiblemente ejecutar estos comandos desde la terminal integrada de Visual Studio Code y dentro de un sistema Linux o UNIX 
 
-1. Cola del monitor que va hacia los Microservicios
+1. Cola del Integrity Validator
 
 ```bash
-celery -A monitor.tasks.queue worker -l info -Q health_check
+celery -A integrity_validator.tasks.queue  worker  -l info -Q send_alert
 ```
 
-2. Cola de Health Response que responde desde los Microservicios hacia el Monitor
+2. Cola que guarda la request original antes de ser modificada en el MITM
 
 ```bash
-celery -A ms_call_handling.tasks.queue worker -l info -Q health_response
+celery -A MITM.tasks.queue worker -l info -Q original_request
 ```
 
-3. Cola del logger del Microservicio de Call Handling cuando se realiza la petición
+3. Cola que guarda la request modificada después de ser modificada en el MITM
 
 ```bash
-celery -A ms_call_handling.tasks.queue worker -l info -Q monitor_calls_logs
+celery -A MITM.tasks.queue worker -l info -Q modified_request
 ```
 
-4. Cola del logger del Microservicio de User Management cuando se realiza la petición
-
-```bash
-celery -A ms_user_management.tasks.queue worker -l info -Q monitor_users_logs
-```
 Imagen de referencia de la ejecución de las colas de Celery con REDIS en distintas instancias de la terminal de VS Code 
 
-![Screenshot 2024-09-08 at 9 30 35 PM](https://github.com/user-attachments/assets/83259a05-e2e2-41a2-8fa5-c15b3a37c294)
+<img width="1683" alt="Screenshot 2024-09-28 at 11 24 50 PM" src="https://github.com/user-attachments/assets/b86dac09-33ce-44d2-a794-4ed0e1b3f0ad">
 
 
-## 6. Levantar los Microservicios
+## 6. Ejecutar el Man in the Middle 
+Abrir una terminal nueva y ejecutar el Man in the Middle con el siguiente comando
+```bash
+mitmproxy --mode reverse:http://127.0.0.1:5002/ -s MITM/app.py
+```
+Imagen de referencia con el MITM ejecutandose en una instancia independiente de la terminal integrada de VS Code
+
+<img width="1681" alt="Screenshot 2024-09-28 at 11 36 33 PM" src="https://github.com/user-attachments/assets/acbaa2a5-26a4-4caa-9372-8a936a5e1764">
+
+
+## 7. Levantar el componente Integrity Validator
+Servicio de Call Handling
+```bash
+cd integrity_validator
+flask run -p 5000
+```
+
+## 8. Levantar los Microservicios
 
 Servicio de Call Handling
 ```bash
-cd ms_call_handling
+cd ms_user_management
 flask run -p 5001
 ```
 
 Servicio de User Management
 ```bash
-cd ms_user_management
-flask run -p 5002
-```
-
-## 7. Levantar el componente Monitor
-Servicio de Call Handling
-```bash
-cd monitor
-flask run -p 5000
+cd ms_pqrs_management
+flask --app pqrs run -p 5002
 ```
 Imagen de referencia de la ejecución de los servicios en distintas instancias de la terminal de VS Code 
 
-![Screenshot 2024-09-08 at 9 32 45 PM](https://github.com/user-attachments/assets/6322a3c6-1a8a-44bf-8722-5f2f27c62570)
+
+<img width="1682" alt="Screenshot 2024-09-28 at 11 30 18 PM" src="https://github.com/user-attachments/assets/e8f1c62e-5527-4e61-b57c-6b52c3440013">
+
 
 
 ## 8. Ver la ejecución del experimento
 
 Puede ir a ver los archivos de los resultados del experimento en estos archivos
 
-1. ms_call_handling/tasks/monitor_logs.txt
-2. ms_user_management/tasks/monitor_logs.txt
-3. instance/monitoring.db
+1. integrity_validator/tasks/send_alert_simulation.txt
+2. MITM/tasks/original_request.txt
+2. MITM/tasks/modified_request.txt
+3. instance/validator.db
 
-Los dos primeros archivos txt corresponden a un log interno dentro de cada Microservicio que se va llenando con base a la petición que se le realiza al endpoint de health de cada Microservicio.
+## 9. Comprobar resultados
 
-El tercer archivo es la base de datos del componente monitor, en el que se ve las repuestas de los microservicios cuando se ejecutan las peticiones a estos.
+Puede comprobar el resultado del experimento en el siguiente enlace
 
-
-## 8. Comprobar resultados
-
-Puede comprobar el resultado del experimento en los siguientes enlaces
-
-1. [Analísis cuantitativo en Looker Studio](https://lookerstudio.google.com/u/0/reporting/78fcc402-1401-4ac0-8a6c-0cd8a7d85644/page/Gg3)
-2. [Presentación del experimento](https://docs.google.com/presentation/d/15z_ZGMFctxYSBiOPJ_o3gk4V7D6VAych/edit?usp=sharing&ouid=104474903328127988920&rtpof=true&sd=true)
-
-## 9. Ejecutar el Man in the Middle 
-```bash
-mitmproxy --mode reverse:http://127.0.0.1:5002/ -s MITM/app.py
-```
+1. [Presentación del experimento](https://docs.google.com/presentation/d/15z_ZGMFctxYSBiOPJ_o3gk4V7D6VAych/edit?usp=sharing&ouid=104474903328127988920&rtpof=true&sd=true)
