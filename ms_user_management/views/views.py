@@ -76,8 +76,11 @@ class UserManagementView(Resource):
 
 class PQRSManagementView(Resource):
     def post(self):
-        pqrs_service_url = 'http://127.0.0.1:5001/api/v1/'
-        experimental_service_url = 'http://127.0.0.1:5002/api/v1/'
+        pqrs_service_url = 'http://127.0.0.1:5002/api/v1/pqrs'
+        mitm_proxies = {
+            "http" : "http://localhost:8080",
+            "https": "http://localhost:8080",
+        }
 
         created_at = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         email_user = request.json.get('user', '').strip()
@@ -108,30 +111,35 @@ class PQRSManagementView(Resource):
                     }
                 ],
             }
-            hashBody = self.createHash(body_request_pqrs)
+            
+            body_request_pqrs = json.dumps(body_request_pqrs, sort_keys=True)
+            
+            hash_body = self.createHash(body_request_pqrs)
+            
             headers = {
-                'X-Content-Hash': hashBody,
+                'X-Content-Hash': hash_body,
             }
 
             try:
                 if random.random() < 0.25:
-                    response = requests.post(experimental_service_url, headers=headers, json=body_request_pqrs)
+                    response = requests.post(pqrs_service_url, headers=headers, json=body_request_pqrs, proxies=mitm_proxies)
                 else:
                     response = requests.post(pqrs_service_url, headers=headers, json=body_request_pqrs)
-                code_status = 200
+                code_status = response.status_code
+                response_data = response.json() 
+                
             except:
-                print("error request")
-                response = "error in request"
+                response_data = "error in request"
                 code_status = 500
 
-            return response, code_status
+            return {"response": response_data}, code_status
         else:
             return {"mensaje": "Usuario no encontrado"}, 404
 
     def createHash(self, body):
         # Crear un objeto HMAC con la clave secreta y el mensaje
         secret_key = "clave_secreta"
-        body = json.dumps(body)
+        
         hmac_obj = hmac.new(secret_key.encode(), body.encode(), hashlib.sha256)
         # Generar el hash
         return hmac_obj.hexdigest()

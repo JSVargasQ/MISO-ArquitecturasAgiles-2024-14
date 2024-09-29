@@ -6,7 +6,8 @@ from flask import request
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from integrity_validator import create_app
-from .models import db
+from .models import db, Warning
+import json
 
 REDIS_SERVER_URL='redis://localhost:6379/0'
 celery_app = Celery(__name__, broker=f'{REDIS_SERVER_URL}')
@@ -43,8 +44,11 @@ class VistaValidador(Resource):
             return {"error": "Falta el encabezado X-Content-Hash"}, 400
         
         # Calcular el hash del cuerpo de la petición
-        body = request.get_data(as_text=True)
+        body = request.get_data()
+        body = json.loads(body)
+        
         calculated_hash = calculate_hash(body)
+
         
         # Comparar los hashes
         if received_hash == calculated_hash:
@@ -54,7 +58,8 @@ class VistaValidador(Resource):
             db.session.add(alerta)
             db.session.commit()
             # Simular envío de alerta
-            send_alert_simulation.apply_async(args = f'La solicitud enviada el {alerta.timestamp} parece estar comprometida, por favor revise el registro {alerta.id} de la tabla warnings.', queue='send_alert')
+            args = f'La solicitud enviada el {alerta.timestamp} parece estar comprometida, por favor revise el registro {alerta.id} de la tabla warnings.', 
+            send_alert_simulation.apply_async(args = args, queue='send_alert')
 
             return {"status": "invalid", "message": "La integridad del mensaje no es válida"}, 400
 

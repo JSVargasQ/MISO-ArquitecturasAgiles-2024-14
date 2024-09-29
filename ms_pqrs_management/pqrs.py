@@ -11,7 +11,7 @@ integrity_service_url = 'http://127.0.0.1:5000/validator'
 # URL del endpoint Flask (asume que está corriendo en localhost)
 url = 'http://127.0.0.1:5000/pqr'
 
-@app.get('/pqrs')
+@app.get('/api/v1/pqrs')
 def get_pqrs():
     # Lista para almacenar los resultados de las PQRs
     pqrs_list = []
@@ -28,7 +28,7 @@ def get_pqrs():
     # Usamos jsonify para devolver el array de objetos en formato JSON
     return jsonify(pqrs_list), 200
 
-@app.get('/pqr')
+@app.get('/api/v1/pqr')
 def get_pqr():
     json_data={
         "user_id": faker.random_int(min=1000, max=9999),
@@ -55,7 +55,6 @@ def get_pqr():
         }
     # Convertir el JSON a una cadena ordenada para asegurar que la estructura sea siempre la misma
     json_str = json.dumps(json_data, sort_keys=True)
-    print(json_str)
     # Generar el hash del JSON
     json_hash = generate_hash_from_json(json_str)
     response = {
@@ -81,6 +80,7 @@ def get_hash_pqr():
     json_data = request.json  # Obtiene el JSON del cuerpo de la solicitud
     json_str = json.dumps(json_data, sort_keys=True)
     json_hash = generate_hash_from_json(json_str)
+    
     response = {
         "hash": json_hash
     }
@@ -90,30 +90,26 @@ def get_hash_pqr():
 @app.post('/api/v1/pqrs')
 def check_integrity():
     
-    
     received_hash = request.headers.get('X-Content-Hash')
-
-    print("received_hash*************",received_hash)
 
     if not received_hash:
             return {"error": "Falta el encabezado X-Content-Hash"}, 400
 
 
-    body = request.get_data(as_text=True)
+    body = request.get_data()
+    body = json.loads(body)
     
-    print("body*************",body)
-
     headers = {
                 'X-Content-Hash': received_hash,
             }
 
     response1 = requests.post(integrity_service_url, headers=headers, json=body)
     
-    print("-----------------------")
-    print(response1)
-
+    if response1.status_code == 400:
+        
+        return {"error": "No se pudo crear la PQRS"}, 400
+        
     response = {
         "data": "procesado"
-        
     }
     return  jsonify(response), 200
